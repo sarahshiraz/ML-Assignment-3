@@ -4,10 +4,16 @@ from keras import layers
 from keras import models
 from keras import optimizers
 from keras.preprocessing.image import ImageDataGenerator
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("path", help="path of the dataset base directory",
+                    type=str)
+args = parser.parse_args()
+print(args.path+'2')
 
 
-
-base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+#base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+base_dir = args.path
 train_dir = os.path.join(base_dir, 'train')
 validation_dir = os.path.join(base_dir, 'validation')
 
