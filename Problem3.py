@@ -12,7 +12,6 @@ import matplotlib.patheffects as PathEffects
 from keras.preprocessing.image import ImageDataGenerator
 
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
 # note that we keep the densely connected classifier;
 # in the two previous vizualization methods, we discarded it
 base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
@@ -31,9 +30,8 @@ validation_cats_dir = os.path.join(validation_dir, 'cats')
 # Directory with our validation dog pictures
 validation_dogs_dir = os.path.join(validation_dir, 'dogs')
 
-with tf.device("/gpu:1"):
-    model = VGG19()
-    model.load_weights('cats_and_dogs_small_4_problem2_vgg19.h5', by_name=True)
+model = VGG19()
+model.load_weights('cats_and_dogs_small_4_problem2_vgg19.h5', by_name=True)
 
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input, decode_predictions
