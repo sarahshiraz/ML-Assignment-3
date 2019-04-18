@@ -14,7 +14,16 @@ from keras.preprocessing.image import ImageDataGenerator
 
 # note that we keep the densely connected classifier;
 # in the two previous vizualization methods, we discarded it
-base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("path", help="path of the dataset base directory",
+                    type=str)
+args = parser.parse_args()
+print(args.path+'2')
+
+
+#base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+base_dir = args.path
 train_dir = os.path.join(base_dir, 'train')
 validation_dir = os.path.join(base_dir, 'validation')
 
@@ -36,9 +45,9 @@ model.load_weights('cats_and_dogs_small_4_problem2_vgg19.h5', by_name=True)
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input, decode_predictions
 
-img_path1 = 'cats_and_dogs_filtered/train/cats/cat.35.jpg'
-img_path2 = 'cats_and_dogs_filtered/train/cats/cat.39.jpg'
-img_path3 = 'cats_and_dogs_filtered/train/cats/cat.40.jpg'
+img_path1 = base_dir + '/train/cats/cat.35.jpg'
+#img_path2 = 'cats_and_dogs_filtered/train/cats/cat.39.jpg'
+#img_path3 = 'cats_and_dogs_filtered/train/cats/cat.40.jpg'
 
 last_conv_layer = model.get_layer('block5_conv4')
 import cv2
@@ -49,6 +58,7 @@ from keras import backend as K
 
 def show_superimposed_image(img_path, heatmap):
     img = cv2.imread(img_path)
+    cv2.imwrite('Image.png', img)
     cv2.imshow('dsaada', img)
     cv2.waitKey(0)
 
@@ -70,6 +80,7 @@ def show_superimposed_image(img_path, heatmap):
     print(np.min(superimposed_img))
     print(np.max(superimposed_img))
     print(superimposed_img.shape)
+    cv2.imwrite('Class Activation.png', superimposed_img)
     cv2.imshow('dsd', superimposed_img)
     cv2.waitKey(0)
 
