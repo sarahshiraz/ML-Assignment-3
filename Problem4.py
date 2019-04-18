@@ -7,10 +7,18 @@ from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.patheffects as PathEffects
 import seaborn as sns
 import numpy as np
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import tensorflow as tf
 
-base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("path", help="path of the dataset base directory",
+                    type=str)
+args = parser.parse_args()
+print(args.path+'2')
+
+
+#base_dir = '/home/shiraz/Desktop/ML/Assignment3/cats_and_dogs_filtered'
+base_dir = args.path
 train_dir = os.path.join(base_dir, 'train')
 validation_dir = os.path.join(base_dir, 'validation')
 
@@ -36,13 +44,12 @@ conv_base = VGG19(
 conv_base.trainable = False
 
 #Concatenate the convolutional base and densely connected layers
-with tf.device("/gpu:1"):
-    model = models.Sequential()
-    model.add(conv_base)
-    model.add(layers.Flatten())
-    model.add(layers.Dense(256, activation='relu'))
-    #model.add(layers.Dropout(0.1))
-    model.add(layers.Dense(1, activation='sigmoid'))
+model = models.Sequential()
+model.add(conv_base)
+model.add(layers.Flatten())
+model.add(layers.Dense(256, activation='relu'))
+#model.add(layers.Dropout(0.1))
+model.add(layers.Dense(1, activation='sigmoid'))
 
 
 #Train the model end to end with frozen convolutional base
@@ -80,44 +87,9 @@ model.compile(
     optimizer=optimizers.RMSprop(lr=2e-5),
     metrics=['acc'])
 
-# train
-
-# history = model.fit_generator(
-#     train_generator,
-#     steps_per_epoch=100,
-#     epochs=25,
-#     validation_data=validation_generator,
-#     validation_steps=50
-# )
-
 
 import matplotlib.pyplot as plt
 
-# acc = history.history['acc']
-# val_acc = history.history['val_acc']
-#
-# loss = history.history['loss']
-# val_loss = history.history['val_loss']
-#
-# epochs = range(1, len(acc) + 1)
-#
-# # training and validation accuracy
-#
-# plt.plot(epochs, acc, 'bo', label='training acc')
-# plt.plot(epochs, val_acc, 'b', label='validation acc')
-# plt.title('training and validation accuracy')
-# plt.legend()
-#
-# plt.figure()
-#
-# # training and validation loss
-#
-# plt.plot(epochs, loss, 'bo', label='training loss')
-# plt.plot(epochs, val_loss, 'b', label='validation loss')
-# plt.title('training and validation loss')
-# plt.legend()
-#
-# plt.show()
 
 # Fine tuning
 conv_base.trainable = True
@@ -141,50 +113,11 @@ model.compile(
     #
     optimizer=optimizers.RMSprop(lr=1e-5),
     metrics=['acc'])
-#
-# # train
-#
-# history = model.fit_generator(
-#     train_generator,
-#     steps_per_epoch=100,
-#     epochs=25,
-#     validation_data=validation_generator,
-#     validation_steps=50)
 
-# acc = history.history['acc']
-# val_acc = history.history['val_acc']
-#
-# loss = history.history['loss']
-# val_loss = history.history['val_loss']
-
-# epochs = range(1, len(acc) + 1)
-
-# training and validation accuracy
-
-# plt.plot(epochs, acc, 'bo', label='training acc')
-# plt.plot(epochs, val_acc, 'b', label='validation acc')
-# plt.title('training and validation accuracy')
-# plt.legend()
-#
-# plt.figure()
-#
-# # training and validation loss
-#
-# plt.plot(epochs, loss, 'bo', label='training loss')
-# plt.plot(epochs, val_loss, 'b', label='validation loss')
-# plt.title('training and validation loss')
-# plt.legend()
-#
-# plt.show()
 
 # Print out validation loss and accuracy
 
 val_loss, val_acc = model.evaluate_generator(validation_generator, steps=50)
-print("Validation loss:", val_loss)
-print("Validation accuracy:", val_acc)
-#
-# model_fname = 'cats_and_dogs_small_4_problem2_vgg19.h5'
-# model.save(model_fname)
 
 
 
@@ -195,22 +128,22 @@ model.summary()
 layer = model.get_layer('dense_2')
 layer_output = layer.output
 activation_model = models.Model(input=model.input, outputs=[layer_output])
-dd = []
-ll = []
+datalist = []
+labelslist = []
 i =0
-for d,l in validation_generator:
-  dd.append(d)
-  ll.append(l)
+for dl,ll in validation_generator:
+  datalist.append(dl)
+  labelslist.append(ll)
   i = i+1
   if i >50:
     break
 
-data = np.array(dd)
-labels = np.array(ll)
+data = np.array(datalist)
+labels = np.array(labelslist)
 
-data = np.reshape(data, (data.shape[0]*data.shape[1],) + data.shape[2:])
-labels = np.reshape(labels, (labels.shape[0]*labels.shape[1],) + labels.shape[2:])
-activations = activation_model.predict(data)
+x = np.reshape(data, (data.shape[0]*data.shape[1],) + data.shape[2:])
+y = np.reshape(labels, (labels.shape[0]*labels.shape[1],) + labels.shape[2:])
+activations = activation_model.predict(x)
 
 
 
@@ -219,15 +152,15 @@ class_names = ['Cats', 'Dogs']
 
 for idx in range(len(class_names)):
   print(idx, ":", class_names[idx])
-def data_scatter(vecs, labels):
+def data_scatter(vecs, y):
     # choose a color palette with seaborn.
-    num_classes = len(np.unique(labels))
+    num_classes = len(np.unique(y))
     palette = np.array(sns.color_palette("husl", num_classes))
 
     # create a scatter plot.
     f = plt.figure(figsize=(12, 12))
     ax = plt.subplot(aspect='equal')
-    sc = ax.scatter(vecs[:, 0], vecs[:, 1], c=palette[labels])
+    sc = ax.scatter(vecs[:, 0], vecs[:, 1], c=palette[y])
     plt.xlim(-25, 25)
     plt.ylim(-25, 25)
     ax.axis('off')
@@ -238,7 +171,7 @@ def data_scatter(vecs, labels):
 
         # Place label at median position of vectors with corresponding label
 
-        x_coord, y_coord = np.median(vecs[labels == idx, :], axis=0)
+        x_coord, y_coord = np.median(vecs[y == idx, :], axis=0)
         txt = ax.text(x_coord, y_coord, class_names[idx], fontsize=16)
         # plot class index black with white contour
         txt.set_path_effects([
@@ -253,4 +186,4 @@ tsne = TSNE(random_state=42).fit_transform(activations)
 
 print('t-SNE done! Time elapsed: {} seconds'.format(time.time() - time_start))
 
-data_scatter(tsne, labels.astype('uint8'))
+data_scatter(tsne, y.astype('uint8'))
